@@ -13,19 +13,26 @@ const app = express();
 // Middleware
 const allowedOrigins = [
     "http://localhost:5173",
+    "http://localhost:5174",
     process.env.FRONTEND_URL
-].filter(Boolean);
+].filter(Boolean); 
 
 app.use(cors({
     origin: (origin, callback) => {
 
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error("Not allowed by CORS"));
-        }
+    console.log("Incoming frontend origin:", origin);
+    console.log("Allowed origins:", allowedOrigins);
 
+    if (!origin || allowedOrigins.includes(origin)) {
+        console.log("CORS: Origin allowed");
+        callback(null, true);
+    } else {
+        console.log("CORS: Origin rejected");
+        callback(new Error("Not allowed by CORS"));
     }
+
+}
+
 }));
 app.use(express.json());
 

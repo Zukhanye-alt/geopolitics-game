@@ -17,7 +17,28 @@ import {
     getAvailableGames
 } from "../services/gameService.js";
 
+import {
+    processBattleCommentary
+} from "../services/aiCommentaryProcessor.js";
+
 const router = express.Router();
+
+async function processBattleCommentarySafely(game) {
+
+    try {
+
+        await processBattleCommentary(game);
+
+    } catch (error) {
+
+        console.error(
+            "AI battle commentary failed:",
+            error.message
+        );
+
+    }
+
+}
 
 // PUBLIC: Retrieve all available games.
 router.get("/", async (req, res) => {
@@ -100,6 +121,8 @@ router.post("/", authenticateUser, async (req, res) => {
             req.userId
         );
 
+        await processBattleCommentarySafely(game);
+
         await saveGameToDatabase(game);
 
         res.status(201).json(game);
@@ -137,7 +160,7 @@ router.get("/:gameId", async (req, res) => {
 
         const { ownerUserId, ...publicGame } = game;
 
-        res.json(publicGame); 
+        res.json(publicGame);
 
     } catch (error) {
 
@@ -162,6 +185,8 @@ router.post(
         try {
 
             const game = skipTurn(req.params.gameId);
+
+            await processBattleCommentarySafely(game);
 
             await saveGameToDatabase(game);
 
@@ -236,6 +261,8 @@ router.post(
                 attackerCountry,
                 defenderCountry
             );
+
+            await processBattleCommentarySafely(game);
 
             await saveGameToDatabase(game);
 
@@ -328,6 +355,8 @@ router.post(
 
             const game = playNpcTurn(req.params.gameId);
 
+            await processBattleCommentarySafely(game);
+
             await saveGameToDatabase(game);
 
             res.json(game);
@@ -354,6 +383,8 @@ router.post(
         try {
 
             const game = fastForwardToHuman(req.params.gameId);
+
+            await processBattleCommentarySafely(game);
 
             await saveGameToDatabase(game);
 

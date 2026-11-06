@@ -15,6 +15,10 @@ import {
     generateNpcDecisionCommentary
 } from "./commentaryService.js";
 
+import {
+    enqueueBattleCommentary
+} from "./battleCommentaryQueue.js";
+
 // Temporary in-memory cache for active games.
 const games = [];
 
@@ -119,7 +123,7 @@ export async function getAvailableGames() {
             createdAt: game.createdAt || null
         };
     });
-} 
+}
 
 // Save a game to MongoDB.
 export async function saveGameToDatabase(game) {
@@ -259,7 +263,7 @@ export function createGame(
 
     const game = {
         id: randomUUID(),
-        ownerUserId: ownerUserId.toString(), 
+        ownerUserId: ownerUserId.toString(),
         round: 1,
         status: "active",
         players,
@@ -622,6 +626,13 @@ export function resolveAttack(
         timestamp: new Date()
     });
 
+    // Queue the actual battle results for AI commentary.
+    enqueueBattleCommentary(game.id, {
+        battleType: "human",
+        round: game.round,
+        ...game.lastBattle
+    });
+
     // Add the battle to the event history.
     game.events.push({
         message: `${attackerCountry.name} attacked ${defenderCountry.name}. ` +
@@ -898,6 +909,20 @@ function resolveNpcAttackRound(game, attacker, defender) {
         round: game.round,
         message: commentary,
         timestamp: new Date()
+    });
+
+    // Queue the complete NPC battle results for AI commentary.
+    enqueueBattleCommentary(game.id, {
+        battleType: "npc",
+        round: game.round,
+        attackerCountry: attacker.name,
+        defenderCountry: defender.name,
+        attackerDice,
+        defenderDice,
+        comparisons,
+        attackerLosses,
+        defenderLosses,
+        conquered
     });
 
     return {
