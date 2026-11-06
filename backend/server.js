@@ -64,7 +64,14 @@ mongoose.connect(process.env.MONGO_URI)
         console.log("MongoDB connected successfully!");
     })
     .catch((error) => {
-        console.error("MongoDB connection failed:", error.message);
-        console.log("Continuing without database connection for now.");
-    });
+    console.error("MongoDB connection failed:", error.message);
+    console.error("Error name:", error.name);
+    console.error("Error code:", error.code);
+
+    if (error.reason) {
+        console.error("Error reason:", error.reason);
+    }
+
+    console.log("Continuing without database connection for now.");
+});
     
